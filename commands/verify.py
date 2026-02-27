@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import os  # NEW
+import os
 
 from services.roster_service import RosterService
 from services.name_service import format_full_name

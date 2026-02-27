@@ -1,3 +1,6 @@
+For more in depth instructions, please see the folder:
+    - discord-bot-steup-guide/readme.md
+
 Discord:
 1. Go to https://discord.com/developers/applications
 2. Create a new application
