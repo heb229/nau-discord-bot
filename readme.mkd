@@ -1,7 +1,10 @@
-For more in depth instructions, please see the folder: discord-bot-steup-guide/readme.md
+THIS IS A SUPER BREIF STARTUP!
+
+For more in depth instructions (and details about the project), please see the folder: discord-bot-steup-guide/readme.md
 
 ... or, click [Here](https://github.com/heb229/nau-discord-bot/blob/main/discord-bot-setup-guide/readme.md)
 
+---
 Discord:
 1. Go to https://discord.com/developers/applications
 2. Create a new application
