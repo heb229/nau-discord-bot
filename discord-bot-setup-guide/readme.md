@@ -160,8 +160,10 @@ If it doesn't automatically set it up, then do:
 
 Click **"Reset Token"**. This is also how you reset your token if it ever happens to be leaked.
 2. Confirm token reset by clicking **"Yes, do it!"**.  
+
 ![Confirm Reset](readme_images/reset_token_confirm.png)  
 3. Confirm your Multi-Factor Authentication, if set up.
+
 ![Multiauth](readme_images/multiauth.png)
 
 4. Next, copy the token by clicking **"Copy"**  
