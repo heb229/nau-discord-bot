@@ -1,7 +1,6 @@
-For more in depth instructions, please see the folder:
+For more in depth instructions, please see the folder: discord-bot-steup-guide/readme.md
 
-    - discord-bot-steup-guide/readme.md
-    - or, click [Here](https://github.com/heb229/nau-discord-bot/blob/main/discord-bot-setup-guide/readme.md)
+... or, click [Here](https://github.com/heb229/nau-discord-bot/blob/main/discord-bot-setup-guide/readme.md)
 
 Discord:
 1. Go to https://discord.com/developers/applications
