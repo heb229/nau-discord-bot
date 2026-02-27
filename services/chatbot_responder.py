@@ -46,6 +46,11 @@ class ChatResponder:
         self.engine = engine or GeminiEngine()
 
     # generate the actual response
+        # 1. take in user question and context 
+        # 2. send it to LLM
+        # 3. LLM generates response
+        # 4. LLM sends itself its own response, with the secondary integrity prompt
+        # 5. LLM sends this new response to the user
     def generate(
         self,
         question: str,
