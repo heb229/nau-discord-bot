@@ -1,4 +1,4 @@
-THIS IS A SUPER BREIF STARTUP!
+THIS IS A SUPER BRIEF STARTUP!
 
 For more in depth instructions (and details about the project), please see the folder: discord-bot-steup-guide/readme.md
 
