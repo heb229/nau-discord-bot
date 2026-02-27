@@ -1,0 +1,15 @@
+# env
+.env
+
+# virtual environment
+.venv/
+venv/
+
+# data files
+data/
+data/students.xlsx
+
+# pychache
+__pycache__/
+commands/__pycache__
+services/__pycache__
