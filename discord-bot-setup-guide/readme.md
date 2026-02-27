@@ -1,6 +1,8 @@
 # nau-discord-bot
 
+
 This guide is intented to be instructive of how to setup a Discord Bot for the sake of getting the project up and running.
+
 ---
 
 # nau-discord-bot Introduction
