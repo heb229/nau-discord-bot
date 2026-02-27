@@ -50,7 +50,7 @@ Section 6 briefly runs over how to create a new command.
 ## Project Structure
 The project itself is located in the bot folder. That folder is structured such:
 
-bot.py  
+```bot.py  
 requirements.py  
 commands/  
     | init.py  
@@ -59,7 +59,8 @@ commands/
 data/
     | data.txt (as needed)
 services/  
-    | {utility}.py  
+    | {utility}.py
+```
 
 
 By which the curly brackers {} represent a placeholder for a file and | represents a subfolder.
