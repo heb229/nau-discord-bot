@@ -30,6 +30,8 @@ Section 4 goes over how to get the bot started in the Discord Developer Portal.
 
 Section 5 gives a quick overview of what can now be done after the completion of section 3 and 4. It also provides a quick warning to the user regarding what may happen if they add new global commands.
 
+Section 6 briefly runs over how to create a new command.
+
 ---
 
 ## Features
@@ -255,7 +257,7 @@ async def setup(bot):
 
 ---
 **Authors:**
-- Haley Berger - heb229
+- Haley Berger - heb229 | Last edited: 2/27/26
 
 Please also check out our contributors list for additional people who have contributed to the project.
 
