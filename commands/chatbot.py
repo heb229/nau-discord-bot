@@ -11,6 +11,7 @@ from commands.constants import *
     # IO
 import asyncio
 import io
+import os
 from pathlib import Path
 
 
@@ -20,6 +21,11 @@ from services.chatbot_responder import ChatResponder
 from services.class_context import ClassContext
 
 
+    # Env files
+from dotenv import load_dotenv
+    # load env file in
+load_dotenv()
+allowed_forum_id = os.getenv("ALLOWED_FORUM_ID")
 
 
 # HELPERS
@@ -186,7 +192,7 @@ class Chat(commands.Cog):
         # only operate inside allowed forum channels
             # checks if forum, then if the specific forum is an allowed 
         if (not isinstance(thread.parent, discord.ForumChannel)) \
-            or (thread.parent_id != ALLOWED_FORUM_ID):
+            or (thread.parent_id != allowed_forum_id):
             return None
         
 
