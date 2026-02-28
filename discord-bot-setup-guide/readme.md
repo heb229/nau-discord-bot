@@ -99,7 +99,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configure envrioment variables
-Create an .env file in our root directory (the same directory this README.md file is in). In that file, add:
+Create an .env file in your root directory. In that file, add:
 
 ```bash
 DISCORD_TOKEN="your_token"
@@ -262,7 +262,6 @@ async def setup(bot):
 **Authors:**
 - Haley Berger - heb229 | Last edited: 2/27/26
 
-Please also check out our contributors list for additional people who have contributed to the project.
 
 **Current Status:**
 - In Progress
