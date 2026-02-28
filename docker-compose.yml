@@ -1,0 +1,53 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: csbot-db
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: rag
+    ports:
+      - "5432:5432"   # Optional: exposes DB to your host; remove if you want DB only inside Docker
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Schema auto-runs only on FIRST initialization of pgdata (fresh volume)
+      - ./services/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  bot:
+    build: .
+    container_name: csbot
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Inside Docker network, use service hostname "db", not localhost
+      DATABASE_URL: postgres://app:app@db:5432/rag
+
+      # If/when you add RAG toggles in code, these are handy:
+      RAG_ENABLED: "true"
+
+    volumes:
+      # Keep your current behavior: mount local data into container
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # Optional web UI to inspect DB at http://localhost:8080
+  adminer:
+    image: adminer:latest
+    container_name: csbot-adminer
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
