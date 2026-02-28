@@ -1,11 +1,18 @@
+# Table of Contents:
+- Discord Bot Creation
+- Startup (by cloning the repo)
+- Startup (by using Docker - recommended... this also has more up-to-date setup instructions)
+
+---
+# Discord Bot Creation:
+
 THIS IS A SUPER BRIEF STARTUP!
 
 For more in depth instructions (and details about the project), please see the folder: discord-bot-steup-guide/readme.md
 
 ... or, click [Here](https://github.com/heb229/nau-discord-bot/blob/main/discord-bot-setup-guide/readme.md)
 
----
-# Discord:
+
 1. Go to https://discord.com/developers/applications
 2. Create a new application
 3. On the left navigation, click "Bot"
@@ -13,7 +20,7 @@ For more in depth instructions (and details about the project), please see the f
 5. Follow though and then copy the token
 6. Save the token
 
-
+---
 # Code:
 1. Fork the project
 2. Create a venv, installing requirements.txt
@@ -26,38 +33,40 @@ For more in depth instructions (and details about the project), please see the f
    
     b. discord_token should be the Token saved prior when creating the bot in Discord Developer.
 
-
+---
 # OR, USE DOCKER! (you may still need to setup the Discord bot, if one isn't already made):
 
-1. Make a new folder
-```mkdir discord-llm-bot```
+## 1. Make a new folder
+
+       mkdir discord-llm-bot
 
 Ex. where I called the folder 'docker-test' instead:
 
 ![create folder](readme-images/create-folder.png)
 
-2. Enter into the folder
-```cd discord-llm-bot```
+## 2. Enter into the folder
 
-3. Copy in the .env file and the data folder.
+       cd discord-llm-bot
+
+## 3. Copy in the .env file and the data folder.
 
 ![copy in the data](readme-images/copy_in_data.png)
 
 Or, make your own.
 
 For env, it needs:
- the API key for the model you are using (if any)
 
- the discord bot token (see the full setup guide for how to get this)
-
- the channel id of the forum you want the bot to be able to respond in.
+- the API key for the model you are using (if any)
+- the discord bot token (see the full setup guide for how to get this)
+- the channel id of the forum you want the bot to be able to respond in.
 
 
 ### .env
-```DISCORD_TOKEN={token from creating the bot}```
-```GEMINI_API_KEY={api key from gemini}```
-```# SPECIFIC forum channel that the chatbot listens to```
-```ALLOWED_FORUM_ID={specific channel id for the bot to respond in}```
+
+       DISCORD_TOKEN={token from creating the bot}
+       GEMINI_API_KEY={api key from gemini}
+       # SPECIFIC forum channel that the chatbot listens to
+       ALLOWED_FORUM_ID={specific channel id for the bot to respond in}
 
 
 ### ./data
@@ -70,54 +79,58 @@ Currently, the text files are exactly that - text files. You can put in whatever
 
 
 For the {server_code}.json file, is should be structured like:
-```
-{
-  "class_name": "CS101 - Introduction to Computer Science",
-  "professor": "Dr. Jane Smith",
-  "office_hours": "Mon & Wed, 2:00-4:00 PM (Room 314)",
-  "class_times": "Tue & Thu, 10:30-11:45 AM",
-  "location": "Lecture Hall A",
-  "contact": "smith@example.edu",
-  "syllabus": "https://example.edu/cs101/syllabus"
-}
-```
+
+
+       {
+         "class_name": "CS101 - Introduction to Computer Science",
+         "professor": "Dr. Jane Smith",
+         "office_hours": "Mon & Wed, 2:00-4:00 PM (Room 314)",
+         "class_times": "Tue & Thu, 10:30-11:45 AM",
+         "location": "Lecture Hall A",
+         "contact": "smith@example.edu",
+         "syllabus": "https://example.edu/cs101/syllabus"
+       }
+
 
 Then, the code expects students.xlsx to be structured like:
-email, username, userid, fullname, lastname, firstname
+
+       email, username, userid, fullname, lastname, firstname
 
 
 It expects those 6 categories. Insert the appropriate information.
 
-4. Open Docker on your computer. If you don't have it instealled, please go and install the app. https://www.docker.com/get-started/ 
+## 4. Open Docker on your computer. If you don't have it instealled, please go and install the app. https://www.docker.com/get-started/ 
 
 ![alt text](readme-images/open_docker_step3.png)
 
 
-4. Still inside discord-llm-bot folder:
+## 5. Still inside discord-llm-bot folder:
 
-```docker build -t cs-bot https://github.com/heb229/nau-discord-bot.git```
+       docker build -t cs-bot https://github.com/heb229/nau-discord-bot.git
 
-5. Then, run it.
+## 6. Then, run it.
 
 Unix:
-```docker run --env-file .env -v $(pwd)/data:/app/data cs-bot```
+
+       docker run --env-file .env -v $(pwd)/data:/app/data cs-bot
 
 Windows:
-```docker run --env-file .env -v ${PWD}/data:/app/data cs-bot```
 
+       docker run --env-file .env -v ${PWD}/data:/app/data cs-bot
 
+--- 
 Optional (if you want it running in the background):
 
 Start it in the background:
 
-```docker run -d --env-file .env -v $(pwd)/data:/app/data --name cs-bot-container cs-bot```
+       docker run -d --env-file .env -v $(pwd)/data:/app/data --name cs-bot-container cs-bot
 
 Check the logs:
 
-```docker logs -f cs-bot-container```
+       docker logs -f cs-bot-container
 
 Stop the run (disable to bot):
 
-```docker stop cs-bot-container```
+       docker stop cs-bot-container
 
 It also doesn't hurt to reopen the Docker app, click on 'Containers' and just make sure the container isn't running anymore either.
