@@ -1,3 +1,14 @@
+
+---
+**Authors:**
+- Haley Berger - heb229 | Last edited: 5/05/26
+
+
+**Current Status:**
+- In Progress
+
+---
+
 # Discord Bot
 
 This project is a Discord bot for course servers. It includes:
