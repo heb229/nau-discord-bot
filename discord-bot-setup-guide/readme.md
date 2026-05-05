@@ -260,7 +260,7 @@ async def setup(bot):
 
 ---
 **Authors:**
-- Haley Berger - heb229 | Last edited: 2/27/26
+- Haley Berger - heb229 | Last edited: 5/05/26
 
 
 **Current Status:**

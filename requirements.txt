@@ -3,3 +3,9 @@ python-dotenv
 pandas
 openpyxl
 google-genai
+
+# for RAG integaration
+psycopg[binary,pool]
+pgvector
+requests
+psycopg_pool

@@ -40,20 +40,15 @@ class Help(commands.Cog):
                 "Verify your identity and set your nickname using your\n"
                 "email, username, or student ID.\n\n"
 
-                "**`/ask`**\n"
-                "Set the context for the LLM chatbot. Then do /ask-question.\n\n"
-
-                "**`/ask-question <question:str> <long:bool>`**\n"
-                "Ask a **conceptual** question about course topics.\n"
-                "_Homework answers and solutions are blocked._\n\n"
-
                 "**`/info <topic>`**\n"
                 "View class-related information such as office hours,\n"
                 "class times, policies, or other instructor-provided info.\n"
                 "Options <topic>: professor, office_hours, class_times, location, contact, syllabus.\n\n"
 
-                "**`/ping`**\n"
-                "Check if the bot is online.\n\n"
+                "**Forum Thread Chatbot**\n"
+                "Ask conceptual course questions by posting inside an allowed forum thread.\n"
+                "Topic tags are optional and only help narrow the retrieved course context.\n"
+                "_Homework answers and full solutions are blocked._\n\n"
 
                 ),
             inline = False
@@ -67,17 +62,17 @@ class Help(commands.Cog):
                     "**`/message post <channel> <content>`**\n"
                     "Post an announcement message as the bot.\n\n"
 
-                    "**`/message edit <message_id> <content>`**\n"
+                    "**`/message edit <channel> <message_id> <new_content>`**\n"
                     "Edit a message previously sent by the bot.\n\n"
 
-                    "**`/message delete <message_id>`**\n"
+                    "**`/message delete <channel> <message_id>`**\n"
                     "Delete a message previously sent by the bot.\n\n"
 
-                    "**`/class set`**\n"
-                    "Configure class-specific settings for this server\n"
-                    "(used for `/info` and class context).\n\n"
+                    "**`/class set <key> <value>`**\n"
+                    "Configure class-specific information for this server\n"
+                    "(used for `/info`).\n\n"
 
-                    "**`/class view`**\n"
+                    "**`/class show`**\n"
                     "View the current class configuration for this server."
                     ),
                 inline = False

@@ -1,136 +1,384 @@
-# Table of Contents:
-- Discord Bot Creation
-- Startup (by cloning the repo)
-- Startup (by using Docker - recommended... this also has more up-to-date setup instructions)
 
 ---
-# Discord Bot Creation:
-
-THIS IS A SUPER BRIEF STARTUP!
-
-For more in depth instructions (and details about the project), please see the folder: discord-bot-steup-guide/readme.md
-
-... or, click [Here](https://github.com/heb229/nau-discord-bot/blob/main/discord-bot-setup-guide/readme.md)
+**Authors:**
+- Haley Berger - heb229 | Last edited: 5/05/26
 
 
-1. Go to https://discord.com/developers/applications
-2. Create a new application
-3. On the left navigation, click "Bot"
-4. Find "Token", then click reset token
-5. Follow though and then copy the token
-6. Save the token
+**Current Status:**
+- In Progress
 
 ---
-# Code:
-1. Fork the project
-2. Create a venv, installing requirements.txt
 
-       pip install -r requirements.txt
-   
-4. Create a .env
+# Discord Bot
 
-    a. add in DISCORD_TOKEN=discord_token
-   
-    b. discord_token should be the Token saved prior when creating the bot in Discord Developer.
+This project is a Discord bot for course servers. It includes:
 
----
-# OR, USE DOCKER! (you may still need to setup the Discord bot, if one isn't already made):
-
-## 1. Make a new folder
-
-       mkdir discord-llm-bot
-
-Ex. where I called the folder 'docker-test' instead:
-
-![create folder](readme-images/create-folder.png)
-
-## 2. Enter into the folder
-
-       cd discord-llm-bot
-
-## 3. Copy in the .env file and the data folder.
-
-![copy in the data](readme-images/copy_in_data.png)
-
-Or, make your own.
-
-For env, it needs:
-
-- the API key for the model you are using (if any)
-- the discord bot token (see the full setup guide for how to get this)
-- the channel id of the forum you want the bot to be able to respond in.
+- student verification against a class roster
+- instructor/admin message management
+- class information lookups
+- class configuration commands
+- a forum-thread chatbot that uses Gemini plus stored class context and thread memory
 
 
-### .env
+## Current Setup Files
 
-       DISCORD_TOKEN={token from creating the bot}
-       GEMINI_API_KEY={api key from gemini}
-       # SPECIFIC forum channel that the chatbot listens to
-       ALLOWED_FORUM_ID={specific channel id for the bot to respond in}
+The repo now includes tracked example config files so a fresh clone still has the templates:
 
-
-### ./data
-Copy the file structure seen in the image. The server_code is is the unique Discord server number, accessible through developer mode. You just need to copy it from Discord and paste it in.
-
-Currently, the text files are exactly that - text files. You can put in whatever information you want. Just make sure the name of the text files matches the discord tag. If you make other subfolders asside from "projects" and "concepts" make sure to add it to:
-
-- services/class_context.py
-- commands/chatbot.py - find_context_file()
+- [`.env.example`](https://github.com/heb229/nau-discord-bot/blob/structure-refactor/.env.example)
+- [`bot_settings.example.json`](https://github.com/heb229/nau-discord-bot/blob/structure-refactor/bot_settings.example.json)
 
 
-For the {server_code}.json file, is should be structured like:
+Typical setup:
+
+1. Copy `.env.example` to `.env`
+2. Copy `bot_settings.example.json` to `data/bot_settings.json`
+3. Fill in the real values
 
 
-       {
-         "class_name": "CS101 - Introduction to Computer Science",
-         "professor": "Dr. Jane Smith",
-         "office_hours": "Mon & Wed, 2:00-4:00 PM (Room 314)",
-         "class_times": "Tue & Thu, 10:30-11:45 AM",
-         "location": "Lecture Hall A",
-         "contact": "smith@example.edu",
-         "syllabus": "https://example.edu/cs101/syllabus"
-       }
+## High-Level Runtime Flow
+
+When you run the project with Docker, `docker-compose.yml` can start:
+
+- `db`: a Postgres database with `pgvector`
+- `bot`: the Discord bot process
+- `adminer`: an optional DB inspection UI, only when you enable the `debug` profile
+
+At runtime the bot starts from `bot.py`, loads all command cogs, logs in to Discord, syncs slash commands, and waits for events.
+
+For chatbot replies, the rough flow is:
+
+1. A user posts in a Discord forum thread.
+2. The bot checks that the message is in the allowed forum.
+3. The bot checks academic-integrity restrictions.
+4. The bot loads runtime settings from `data/bot_settings.json`.
+5. The bot retrieves class context from the `class_docs` table using Gemini embeddings.
+6. The bot retrieves thread context with bias to either (dependent on bot settings):
+   - recent messages, or
+   - semantic thread-memory matches
+   Tags are optional. If a thread has tags, class retrieval can use them to narrow results. If not, retrieval falls back to broader class context.
+7. The bot combines course context, thread context, and the current question into a single prompt.
+8. The bot sends that prompt to Gemini for response generation.
+9. The bot optionally runs a second Gemini pass for academic-integrity cleanup.
+10. The bot sends the final answer back to Discord.
+11. The bot stores the new user message and bot response in `thread_memory`.
 
 
-Then, the code expects students.xlsx to be structured like:
+## Current Features
 
-       email, username, userid, fullname, lastname, firstname
+### General commands
+
+- `/verify <identifier>`
+  Verifies a student using the roster file and sets their Discord nickname.
+
+- `/info <topic>`
+  Returns class information configured for the current server.
+
+- `/help`
+  Shows the command list.
 
 
-It expects those 6 categories. Insert the appropriate information.
+### Admin commands
 
-## 4. Open Docker on your computer. If you don't have it instealled, please go and install the app. https://www.docker.com/get-started/ 
+- `/message post <channel> <content>`
+  Post a message as the bot.
 
-![alt text](readme-images/open_docker_step3.png)
+- `/message edit <channel> <message_id> <new_content>`
+  Edit a message previously sent by the bot.
+
+- `/message delete <channel> <message_id>`
+  Delete a message previously sent by the bot.
+
+- `/class set <key> <value>`
+  Store or update class information used by `/info`.
+
+- `/class show`
+  Display the currently stored class information for the server.
 
 
-## 5. Still inside discord-llm-bot folder:
+### Chatbot behavior
 
-       docker build -t cs-bot https://github.com/heb229/nau-discord-bot.git
+The chatbot currently works from Discord forum-thread messages.
 
-## 6. Then, run it.
+Current chatbot features include:
 
-Unix:
+- course-context retrieval from the database
+- optional tag-based narrowing for more targeted retrieval
+- thread-context retrieval using recency or semantic lookup
+- configurable thread and class chunk counts
+- configurable prompt verbosity
+- configurable context size limits
+- optional Discord-visible debug reporting
+- academic-integrity guardrails
 
-       docker run --env-file .env -v $(pwd)/data:/app/data cs-bot
 
-Windows:
+## Runtime Settings File
 
-       docker run --env-file .env -v ${PWD}/data:/app/data cs-bot
+The chatbot reads settings from:
 
---- 
-Optional (if you want it running in the background):
+`data/bot_settings.json`
 
-Start it in the background:
+Current supported fields:
 
-       docker run -d --env-file .env -v $(pwd)/data:/app/data --name cs-bot-container cs-bot
+- `thread_context_mode`
+  Allowed values: `recency`, `semantic`
 
-Check the logs:
+- `thread_context_k`
+  Number of thread-memory chunks/messages to retrieve
 
-       docker logs -f cs-bot-container
+- `class_context_k`
+  Number of class context chunks to retrieve
 
-Stop the run (disable to bot):
+- `max_context_chars`
+  Maximum combined context length sent to the LLM
 
-       docker stop cs-bot-container
+- `response_verbosity`
+  Allowed values: `concise`, `normal`, `detailed`
 
-It also doesn't hurt to reopen the Docker app, click on 'Containers' and just make sure the container isn't running anymore either.
+- `enforce_academic_integrity`
+  Enables the second cleanup pass before the bot sends a reply
+
+- `discord_debug`
+  If `true`, the bot posts debug progress into the Discord thread; this is advised to be off in production
+
+- `debug_context_preview_chars`
+  Controls how much context preview is shown when Discord debug mode is enabled
+
+
+## AI Engine Selection
+
+The AI model selection is centralized in:
+
+`services/ai/selector.py`
+
+Change these lines to swap implementations to a different LLM later:
+
+```python
+RESPONSE_ENGINE_CLASS = GeminiEngine
+EMBEDDING_ENGINE_CLASS = GeminiEmbeddingEngine
+```
+
+The abstract base classes and current implementations live in:
+
+`services/ai/model_engine.py`
+
+
+## Required Files and Environment
+
+Before running with Docker, make sure these exist:
+
+- `.env`
+- `data/`
+- `data/classes/<GUILD_ID>/`
+
+GuildID is the server ID you are running the bot on.
+
+Your `.env` should include at least:
+
+```env
+DISCORD_TOKEN=your_discord_bot_token
+GEMINI_API_KEY=your_gemini_api_key
+ALLOWED_FORUM_ID=your_forum_channel_id
+GEMINI_EMBED_MODEL=gemini-embedding-001
+GEMINI_MODEL=gemini-3-flash-preview
+POSTGRES_USER=app
+POSTGRES_PASSWORD=your_long_random_database_password
+POSTGRES_DB=rag
+```
+
+Optional:
+
+```env
+DEBUG=True
+```
+
+
+## Docker Startup
+
+### 1. Open a terminal in the project root
+
+This should be the folder containing:
+
+- `docker-compose.yml`
+- `Dockerfile`
+- `bot.py`
+
+
+### 2. Build and start the project
+
+```powershell
+docker compose up --build
+```
+
+This will:
+
+- build the bot image
+- start Postgres
+- apply the schema on first DB initialization
+- start the bot
+- not expose Postgres directly to your host machine (for security)
+
+
+### 3. If you want it running in the background
+
+```powershell
+docker compose up --build -d
+```
+
+
+### 4. If you also want Adminer for local DB inspection
+
+Adminer is behind the `debug` profile and only binds to `127.0.0.1`.
+
+```powershell
+docker compose --profile debug up --build
+```
+
+Or detached:
+
+```powershell
+docker compose --profile debug up --build -d
+```
+
+
+### 5. Watch logs
+
+Bot logs:
+
+```powershell
+docker compose logs -f bot
+```
+
+All service logs:
+
+```powershell
+docker compose logs -f
+```
+
+Direct container logs:
+
+```powershell
+docker logs -f csbot
+```
+
+
+### 6. Stop the stack
+
+```powershell
+docker compose down
+```
+
+
+### 7. Rebuild from a clean database
+
+Use this when you change `schema.sql` or want a full reset:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+
+## Data Ingestion for Course Context
+
+The chatbot retrieves class context from the `class_docs` table. That means course text files need to be ingested into the DB before RAG-based context retrieval will have useful content.
+
+To ingest a class folder:
+
+```powershell
+docker compose exec bot python -m services.rag.ingest_class_docs {class_id} /app/data/classes/{class_id}
+```
+
+Replace `{class_id}` with the actual Discord server ID / class ID you are using:
+
+
+
+## Adminer
+
+If you started the stack with the `debug` profile, you can inspect the database at:
+
+[http://localhost:8080](http://localhost:8080)
+
+
+## Test and Debug Commands
+
+### Rebuild whole stack and drop DB
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+
+### Start
+
+```powershell
+docker compose up --build
+```
+
+
+### Stop
+
+```powershell
+docker compose down
+```
+
+
+### Check embedded dimensions
+
+```powershell
+docker compose exec bot python -m scripts.check_embed_dim
+```
+
+When using Gemini embeds, the expected embedding dimension is `3072`. If you swap engines later, update the classes selected in `services/ai/selector.py` and make sure the vector dimension still matches your replacement embedding model.
+
+If the dimension changes, update `vector(3072)` in `services/schema.sql` to the new size, then rebuild with a fresh DB:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+
+### Ingest data into DB
+
+```powershell
+docker compose exec bot python -m services.rag.ingest_class_docs {class_id} /app/data/classes/{class_id}
+```
+
+
+### Test ingested data and semantic search
+
+```powershell
+docker compose exec -e PYTHONPATH=/app -e TEST_CLASS_ID={class_id} bot python scripts/test_retrieve.py
+```
+
+
+### Count ingested rows in `class_docs`
+
+```powershell
+docker exec -it csbot-db psql -U app -d rag -c "SELECT COUNT(*) FROM class_docs WHERE class_id='{class_id}';"
+```
+
+
+### Inspect tags
+
+```powershell
+docker exec -it csbot-db psql -U app -d rag -c "SELECT id, source_ref, tags FROM class_docs WHERE class_id='{class_id}' LIMIT 20;"
+```
+
+If no metadata file exists, the ingestion logic assumes the file name as the default tag.
+
+
+### Preview stored embeddings
+
+```powershell
+docker exec -it csbot-db psql -U app -d rag -c "SELECT id, LEFT(embedding::text, 200) AS embedding_preview FROM class_docs LIMIT 3;"
+```
+
+
+## Notes
+
+- When you change code, it is safest to stop Docker and rebuild before testing again.
+- The `scripts/` folder is for development/testing utilities and is not part of normal runtime behavior.
+- If you swap to a different embedding model later, re-check the embedding dimension and update the DB vector column size to match.
+- The chatbot now uses DB-backed class retrieval and thread memory, so course files need to be ingested for the best experience.
