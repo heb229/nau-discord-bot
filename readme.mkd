@@ -13,8 +13,8 @@ This project is a Discord bot for course servers. It includes:
 
 The repo now includes tracked example config files so a fresh clone still has the templates:
 
-- [`.env.example`](/C:/Users/hberg/OneDrive/Documents/Discord%20Bot/class-discord-bot/.env.example)
-- [`bot_settings.example.json`](/C:/Users/hberg/OneDrive/Documents/Discord%20Bot/class-discord-bot/bot_settings.example.json)
+- [`.env.example`](https://github.com/heb229/nau-discord-bot/blob/structure-refactor/.env.example)
+- [`bot_settings.example.json`](https://github.com/heb229/nau-discord-bot/blob/structure-refactor/bot_settings.example.json)
 
 
 Typical setup:
