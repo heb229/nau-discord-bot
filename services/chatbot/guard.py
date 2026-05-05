@@ -1,11 +1,15 @@
 # imports
 import re
-from services.ai_engine import AIEngine
-from services.gemini_engine import GeminiEngine
 
-# FOR: CHATBOT
+from services.ai.model_engine import ResponseEngine
+from services.ai.selector import get_response_engine
+
+# This ChatGuard class is responsible for enforcing academic integrity in the chatbot's responses. 
+# It checks if a question contains restricted patterns that indicate a request for direct solutions, 
+# and it can clean AI-generated responses to ensure they do not include code, final answers, or 
+# step-by-step solutions. The class uses an AI engine (like Gemini) to perform the cleaning of 
+# responses while maintaining helpful and academic explanations.
 class ChatGuard:
-    # restricted words
     RESTRICTED_PATTERNS = [
         r"solve",
         r"answer",
@@ -15,11 +19,9 @@ class ChatGuard:
         r"give me the solution",
     ]
 
-    def __init__(self, engine: AIEngine | None = None):
-        # allow injecting AI engine for response cleaning
-        self.engine = engine or GeminiEngine()
+    def __init__(self, engine: ResponseEngine | None = None):
+        self.engine = engine or get_response_engine()
 
-    # function to classify questions if restricted
     def classify(self, question: str) -> str:
         question = question.lower()
         for pattern in self.RESTRICTED_PATTERNS:
@@ -27,13 +29,7 @@ class ChatGuard:
                 return "restricted"
         return "conceptual"
 
-    # function to enforce integrity
-        # it is a "second pass" of the response to double check it
     def enforce_academic_integrity(self, response: str) -> str:
-        """
-        Take an AI-generated response and ensure it does not include
-        code, solutions, or final answers. Returns a cleaned version.
-        """
         integrity_prompt = f"""
         You received the following response from another AI attempt:
 

@@ -1,0 +1,12 @@
+// Move this into the data folder when created
+
+{
+  "thread_context_mode": "recency",
+  "thread_context_k": 5,
+  "class_context_k": 5,
+  "max_context_chars": 12000,
+  "response_verbosity": "detailed",
+  "enforce_academic_integrity": true,
+  "discord_debug": false,
+  "debug_context_preview_chars": 1200
+}

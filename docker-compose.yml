@@ -1,23 +1,28 @@
 services:
+  # The "db" service uses the pgvector image, which is a PostgreSQL database with vector search capabilities.
   db:
     image: pgvector/pgvector:pg16
     container_name: csbot-db
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: rag
-    ports:
-      - "5432:5432"   # Optional: exposes DB to your host; remove if you want DB only inside Docker
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Schema auto-runs only on FIRST initialization of pgdata (fresh volume)
       - ./services/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d rag"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 30
 
+  # The "bot" service builds the chatbot application from the current directory. 
+  # It depends on the "db" service and will wait until the database is healthy before starting. 
+  # It uses environment variables from the .env file and also sets a DATABASE_URL that points to the "db" service within the Docker network. 
+  # The bot's data directory is mounted as a volume, and it will restart unless stopped.
   bot:
     build: .
     container_name: csbot
@@ -28,25 +33,28 @@ services:
       - .env
     environment:
       # Inside Docker network, use service hostname "db", not localhost
-      DATABASE_URL: postgres://app:app@db:5432/rag
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 
-      # If/when you add RAG toggles in code, these are handy:
+      # If/when adding RAG toggles in code, these are handy:
       RAG_ENABLED: "true"
 
     volumes:
-      # Keep your current behavior: mount local data into container
+      # mount local data into container
       - ./data:/app/data
     restart: unless-stopped
 
-  # Optional web UI to inspect DB at http://localhost:8080
+  # The "adminer" service uses the Adminer image, which provides a web-based database management interface. 
+  # It depends on the "db" service and will wait until the database is healthy before starting.
   adminer:
     image: adminer:latest
     container_name: csbot-adminer
+    profiles:
+      - debug
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     restart: unless-stopped
 
 volumes:

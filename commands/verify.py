@@ -7,7 +7,8 @@ import os
 from services.roster_service import RosterService
 from services.name_service import format_full_name
 
-
+# Class defining the verify command, which allows students to verify their identity and set their 
+# nickname to their full name as listed in the roster.
 class Verify(commands.Cog):
 
     # initialize from roster services 
@@ -38,6 +39,7 @@ class Verify(commands.Cog):
                 )
             return None
 
+        # grab server ID and build roster path
         guild_id = interaction.guild_id
         roster_path = f"data/classes/{guild_id}/students.xlsx"
 
@@ -55,7 +57,8 @@ class Verify(commands.Cog):
         # lookup student
         student = self.roster.find_student(identifier)
 
-        # if the student is not found in the loopup
+
+        # if the student is not found in the lookup
         if not student:
             # notify that the student was not found
             await interaction.followup.send(
@@ -70,7 +73,7 @@ class Verify(commands.Cog):
 
         # Condition 1: REFORMAT NEW NAME
         try:
-            # reformat new name from full name
+            # reformat name from full name for proper display on discord (IE: "Smith, John" --> "John Smith")
             new_name = format_full_name(student["fullname"])
         
         # if there is a problem
@@ -84,8 +87,8 @@ class Verify(commands.Cog):
 
 
 
-        # Condition 2: CHECK IF SERVER OWNER (can not be server own)
-            # discord bots can not change the username of the server owner
+        # Condition 2: CHECK IF SERVER OWNER (can not be server owner)
+            # discord bots can not change the username of the server owner, so we must make sure that the user verifying is not the server owner.
             # if server owner, throw an error
         if interaction.guild and interaction.user.id == interaction.guild.owner_id:
             await interaction.followup.send(

@@ -1,8 +1,11 @@
 from pathlib import Path
-from services.ai_engine import AIEngine
-from services.gemini_engine import GeminiEngine
-from commands.constants import *
 
+from commands.constants import *
+from services.ai.model_engine import ResponseEngine
+from services.ai.selector import get_response_engine
+
+# This ChatResponder class is responsible for generating responses to student questions in a 
+# university computer science course context.
 SYSTEM_PROMPT = """
 You are a university teaching assistant for a computer science course.
 
@@ -19,22 +22,19 @@ Tone:
 Helpful, encouraging, academic.
 """
 
-# Class for the responder
+# The ChatResponder class takes in a guild ID, optional context (either as a file path or raw text), 
+# and an optional AI engine. It generates responses to student questions while enforcing academic 
+# integrity by ensuring that the responses do not include code, final answers, or step-by-step 
+# solutions. The class uses a system prompt to guide the tone and content of the responses, and 
+# it can adjust the length and verbosity of the explanations based on parameters.
 class ChatResponder:
-
-    # init (set self)
     def __init__(
         self,
         guild_id: int,
         context_path: Path | None = None,
         raw_context: str | None = None,
-        engine: AIEngine | None = None):
-        """
-        Either provide:
-        - context_path (single file), OR
-        - raw_context (already merged text)
-        """
-
+        engine: ResponseEngine | None = None,
+    ):
         if raw_context:
             self.context = raw_context[:CONTEXT_LIMIT]
         elif context_path:
@@ -42,39 +42,35 @@ class ChatResponder:
         else:
             self.context = ""
 
-        # set engine to selected, or default to gemini
-        self.engine = engine or GeminiEngine()
+        self.engine = engine or get_response_engine()
 
-    # generate the actual response
-        # 1. take in user question and context 
-        # 2. send it to LLM
-        # 3. LLM generates response
-        # 4. LLM sends itself its own response, with the secondary integrity prompt
-        # 5. LLM sends this new response to the user
     def generate(
         self,
         question: str,
         allow_long: bool = False,
-        enforce_integrity: bool = True) -> str:
-
-        # if the student is fine with long messages, don't restrict response
+        enforce_integrity: bool = True,
+        verbosity: str = "detailed",
+    ) -> str:
         if allow_long:
-            length_instruction = (
-                "Provide a detailed explanation. Length is not restricted."
-            )
-        # otherwise, restrict response length
+            length_instruction = "Provide a detailed explanation. Length is not restricted."
         else:
             length_instruction = (
                 f"Your response MUST be under {MAX_DISCORD_LEN} characters. "
                 "If the explanation exceeds this, shorten it."
             )
 
-        # PROMPT: explicitly instruct the AI to consider all contexts
+        verbosity_instruction = {
+            "concise": "Keep the response brief and direct, focusing only on the key explanation.",
+            "normal": "Keep the response moderately detailed and easy to follow.",
+            "detailed": "Provide a detailed explanation with strong conceptual clarity.",
+        }.get(verbosity, "Provide a detailed explanation with strong conceptual clarity.")
+
         prompt = f"""
             {length_instruction}
+            {verbosity_instruction}
             {SYSTEM_PROMPT}
 
-            COURSE CONTEXT (multiple topics, consider ALL sections below):
+            COURSE and CONVERSATION CONTEXT (multiple topics, consider ALL sections below):
             {self.context}
 
             STUDENT QUESTION:
@@ -84,26 +80,28 @@ class ChatResponder:
             - Make sure to use information from all the provided contexts.
             - If multiple topics are referenced, cover them all as needed.
             - Explain concepts clearly, but do NOT give full solutions or code.
+            - Use THREAD CONTEXT to maintain continuity in the conversation
+            - Do not repeat explanations unnecessarily
+            - Build on previous answers if relevant
             """
 
         print("Calling AI engine...")
         print("Prompt length:", len(prompt))
         print(prompt)
-        text = self.engine.generate(prompt)
+        try:
+            text = self.engine.generate(prompt)
+        except Exception as err:
+            print(f"{self.engine.__class__.__name__} failed:", err)
+            raise
+
         print("AI engine responded.")
 
-        # safety check for code blocks
         if "```" in text:
             print("Caught code block in response!")
             return (
                 "I can explain the concept, but I can't provide code or full solutions.\n\n"
                 "Try asking *why* or *how* the concept works."
             )
-
-
-        # secondary academic integrity check
-            # takes first response from LLM and runs it back into LLM
-            # to check integrity
 
         if enforce_integrity:
             integrity_prompt = f"""
@@ -125,8 +123,12 @@ class ChatResponder:
             {text}
             """
             print("Calling AI engine for academic integrity pass...")
-            text = self.engine.generate(integrity_prompt)
+
+            try:
+                text = self.engine.generate(integrity_prompt)
+            except Exception as err:
+                print("Integrity pass failed:", err)
+                raise
             print("Academic integrity pass complete.")
 
         return text
-
