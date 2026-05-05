@@ -14,7 +14,7 @@ async def run():
     class_id = "test_class"
     user_id = "user123"
 
-    # 🔑 Create dependencies FIRST
+    # Create dependencies FIRST
     ensure_class_exists(class_id)
     ensure_user_exists(user_id)
     ensure_user_exists("bot")
